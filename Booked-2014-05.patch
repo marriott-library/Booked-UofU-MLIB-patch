@@ -1,0 +1,401 @@
+diff -NaurBb tpl/Reservation/create.tpl tpl/Reservation/create.tpl
+--- tpl/Reservation/create.tpl  2014-03-31 12:32:18.000000000 -0600
++++ tpl/Reservation/create.tpl  2014-04-15 08:09:36.429509358 -0600
+@@ -31,7 +31,7 @@
+                                {translate key='Create'}
+                </button>
+        {/block}
+-       <button type="button" class="button" onclick="window.location='{$ReturnUrl}'">
++       <button type="button" class="button" onclick="window.location='{$ReturnUrl|regex_replace:"/Web\//":""}'">
+        {html_image src="slash.png"}
+                {translate key='Cancel'}
+        </button>
+@@ -253,7 +253,7 @@
+                                        {translate key='Create'}
+                        </button>
+                {/block}
+-               <button type="button" class="button" onclick="window.location='{$ReturnUrl}'">
++               <button type="button" class="button" onclick="window.location='{$ReturnUrl|regex_replace:"/Web\//":""}'">
+                {html_image src="slash.png"}
+                        {translate key='Cancel'}
+                </button>
+diff -NaurBb tpl/Reservation/view.tpl tpl/Reservation/view.tpl
+--- tpl/Reservation/view.tpl    2014-03-31 12:32:18.000000000 -0600
++++ tpl/Reservation/view.tpl    2014-04-15 08:05:48.315245019 -0600
+@@ -192,7 +192,7 @@
+                        {block name="submitButtons"}
+                                &nbsp
+                        {/block}
+-                       <button type="button" class="button" onclick="window.location='{$ReturnUrl}'">
++                       <button type="button" class="button" onclick="window.location='{$ReturnUrl|regex_replace:"/Web\//":""}'">
+                                <img src="img/slash.png"/>
+                                {translate key='Close'}
+                        </button>
+diff -NaurBb tpl/Schedule/schedule.tpl tpl/Schedule/schedule.tpl
+--- tpl/Schedule/schedule.tpl   2014-03-31 12:32:18.000000000 -0600
++++ tpl/Schedule/schedule.tpl   2014-04-15 13:25:31.084006161 -0600
+@@ -49,13 +49,7 @@
+ {/function}
+ 
+ {function name=displayReservable}
+-       <td {$spantype|default:'col'}span="{$Slot->PeriodSpan()}" ref="{$SlotRef}" class="reservable clickres slot"><div style="position:relative;width:100%;height:100%;">
+-               &nbsp;
+-               <input type="hidden" class="href" value="{$Href}"/>
+-               <input type="hidden" class="start" value="{$Slot->BeginDate()->Format('Y-m-d H:i:s')|escape:url}"/>
+-               <input type="hidden" class="end" value="{$Slot->EndDate()->Format('Y-m-d H:i:s')|escape:url}"/>
+-               </div>
+-       </td>
++  <td colspan="{$Slot->PeriodSpan()}" class="reservable clickres" data-href="{$Href}" data-start="{$Slot->BeginDate()->Format('Y-m-d H:i:s')|escape:url}" data-end="{$Slot->EndDate()->Format('Y-m-d H:i:s')|escape:url}"></td>
+ {/function}
+ 
+ {function name=displayRestricted}
+@@ -63,8 +57,8 @@
+ {/function}
+ 
+ {function name=displayUnreservable}
+-       <td {$spantype|default:'col'}span="{$Slot->PeriodSpan()}"
+-               class="unreservable slot">{$Slot->Label($SlotLabelFactory)|escape}</td>
++       <!--td {$spantype|default:'col'}span="{$Slot->PeriodSpan()}"
++               class="unreservable slot">{$Slot->Label($SlotLabelFactory)|escape}</td-->
+ {/function}
+ 
+ {function name=displaySlot}
+@@ -159,7 +153,7 @@
+        <div class="reservations-left-header">{translate key=ResourceFilter}</div>
+
+        <div class="reservations-left-content">
+-               <div class="center"><a id="show_all_resources" href="#">{translate key=ClearFilter}</a></div>
++               <!--div class="center"><a id="show_all_resources" href="#">{translate key=ClearFilter}</a></div>
+
+                <div>
+                <select {formname key=RESOURCE_ID} class="textbox" id="resourceIdFilter">
+@@ -170,20 +164,15 @@
+
+                <div>
+                <div id="resourceGroups"></div>
+-               </div>
++               </div-->
+
+                <form method="POST">
+
+-                       <div class="advancedFilterTitle">Advanced Filter</div>
+-                       <hr/>
++                       <!--div class="advancedFilterTitle">Advanced Filter</div>
++                       <hr/-->
+
+                        <div id="advancedFilter">
+                                <div>
+-                               {translate key=MinimumCapacity}
+-                               <input type='text' id='maxCapactiy' class="textbox" size='5' maxlength='5' {formname key=MAX_PARTICIPANTS} value="{$MaxParticipantsFilter}" />
+-                               </div>
+-
+-                               <div>
+                                {translate key=ResourceType}
+                                <select {formname key=RESOURCE_TYPE_ID} class="textbox" {formname key=RESOURCE_TYPE_ID}>
+                                        <option value="">- {translate key=All} -</option>
+@@ -202,6 +191,11 @@
+                                {/foreach}
+
+                                <div>
++                               {translate key=MinimumCapacity}
++                               <input type='text' id='maxCapactiy' class="textbox" size='5' maxlength='5' {formname key=MAX_PARTICIPANTS} value="{$MaxParticipantsFilter}" />
++                               </div>
++
++                               <div>
+                                        <br/>
+                                        <input type="submit" value="{translate key=Filter}" class="button" {formname key=SUBMIT}/>
+                                </div>
+@@ -223,7 +217,10 @@
+                                        {/if}
+                                        <td class="resdate">{formatdate date=$date key="schedule_daily"}</td>
+                                        {foreach from=$DailyLayout->GetPeriods($date, true) item=period}
++                                               {assign var=ColSpan value=$period->Span()}
++            {if $ColSpan > 1}
+                                                <td class="reslabel" colspan="{$period->Span()}">{$period->Label($date)}</td>
++            {/if}
+                                        {/foreach}
+                                </tr>
+                                {foreach from=$Resources item=resource name=resource_loop}
+diff -NaurBb Web/scripts/reservation.js Web/scripts/reservation.js
+--- Web/scripts/reservation.js  2014-03-31 12:32:22.000000000 -0600
++++ Web/scripts/reservation.js  2014-04-15 08:32:53.631321443 -0600
+@@ -177,7 +177,7 @@
+        {
+                $('#btnSaveSuccessful').click(function (e)
+                {
+-                       window.location = options.returnUrl;
++                       window.location = options.returnUrl.replace(/Web\//, '');
+                });
+ 
+                $('#btnSaveFailed').click(function ()
+diff -NaurBb Web/scripts/schedule.js Web/scripts/schedule.js
+--- Web/scripts/schedule.js     2014-03-31 12:32:22.000000000 -0600
++++ Web/scripts/schedule.js     2014-04-11 11:40:27.391187344 -0600
+@@ -46,21 +46,9 @@
+ 
+                reservations.delegate('.reservable', 'click', function ()
+                {
+-                       var sd = '';
+-                       var ed = '';
+-
+-                       var start = $('.start', this);
+-                       if (start.length > 0)
+-                       {
+-                               sd = start.val();
+-                       }
+-                       var end = $('.end', this);
+-                       if (end.length > 0)
+-                       {
+-                               ed = end.val();
+-                       }
+-
+-                       var link = $('.href', this).val();
++                       var sd = $(this).data('start');
++                       var ed = $(this).data('end');
++                       var link = $(this).data('href');
+                        window.location = link + "&sd=" + sd + "&ed=" + ed;
+                });
+diff '--exclude=CAS_*' '--exclude=CASUser.php' '--exclude=phpCAS' '--exclude=CAS-1.3.1' -NaurbB plugins/Authentication/CAS/CAS.config.php plugins/Authentication/CAS/CAS.config.php
+--- plugins/Authentication/CAS/CAS.config.php   1969-12-31 17:00:00.000000000 -0700
++++ plugins/Authentication/CAS/CAS.config.php   2014-04-11 11:40:27.271186166 -0600
+@@ -0,0 +1,34 @@
++<?php
++/**
++Copyright 2013-2014 Bart Verheyde, Nick Korbel
++bart.verheyde@ugent.be
++This file is not part of default Booked Scheduler.
++
++Booked Scheduler is free software: you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation, either version 3 of the License, or
++(at your option) any later version.
++
++Booked Scheduler is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with Booked Scheduler.  If not, see <http://www.gnu.org/licenses/>.
++*/
++
++$conf['settings']['cas.version'] = 'S1';                                       // '1.0' = CAS_VERSION_1_0, '2.0 = CAS_VERSION_2_0, 'S1' = SAML_VERSION_1_1
++$conf['settings']['cas.server.hostname'] = 'go.utah.edu';              // the hostname of the CAS server
++$conf['settings']['cas.port'] = '443';                                         // the port the CAS server is running on
++$conf['settings']['cas.server.uri'] = '/cas';                                  // the URI the CAS server is responding on
++$conf['settings']['cas.change.session.id'] = 'false';          // Allow phpCAS to change the session_id
++$conf['settings']['email.suffix'] = '@umail.utah.edu';         // Email suffix to use when storing CAS user account. IE, email addresses will be saved to Booked Scheduler as username@yourdomain.com
++
++$conf['settings']['cas_logout_servers'] = 'https://go.utah.edu/cas/logout';                            // Comma separated list of servers to use for logout. Leave blank to not use cas logout servers
++
++$conf['settings']['cas.certificates'] = '';    // Path to certificate to use for CAS. Leave blank if no certificate should be used
++
++$conf['settings']['cas.debug.enabled'] = 'false';
++$conf['settings']['cas.debug.file'] = '/tmp/phpcas.log';
++?>
+diff '--exclude=CAS_*' '--exclude=CASUser.php' '--exclude=phpCAS' '--exclude=CAS-1.3.1' -NaurbB plugins/Authentication/CAS/CAS.php plugins/Authentication/CAS/CAS.php
+--- plugins/Authentication/CAS/CAS.php  2014-03-31 12:32:18.000000000 -0600
++++ plugins/Authentication/CAS/CAS.php  2014-04-15 10:42:33.519580080 -0600
+@@ -144,18 +144,28 @@
+        {
+                $registration = $this->GetRegistration();
+
++    $user = phpCAS::getAttributes();
++    $username = $user['unid'];
++    $password = uniqid();
++    $email = $user['ummail'];
++    $fname = strstr($user['cn'], " ", true);
++    $lname = strstr($user['cn'], " ");
++    $phone = $user['telephoneNumber'];
++    $org = strstr($user['ou'], " - ", true);
++    $title = strstr($user['ou'], " - ");
++
+                $registration->Synchronize(
+                        new AuthenticatedUser(
+                                $username,
+-                               $username . $this->options->EmailSuffix(),
+-                               $username,
+-                               $username,
++                               $email,
++                               $fname,
++                               $lname,
+                                uniqid(),
+                                Configuration::Instance()->GetKey(ConfigKeys::LANGUAGE),
+                                Configuration::Instance()->GetDefaultTimezone(),
+-                               null,
+-                               null,
+-                               null), true
++                               $phone,
++                               $org,
++                               $title), true
+                );
+        }
+ }
+diff -NaurBb database_schema/upgrades/2.1/data.sql database_schema/upgrades/2.1/data.sql
+--- database_schema/upgrades/2.1/data.sql       2014-03-31 12:32:08.000000000 -0600
++++ database_schema/upgrades/2.1/data.sql       2014-04-11 11:40:27.135184832 -0600
+@@ -1,3 +1,3 @@
+-insert into roles values (3, 'Resource Admin', 3);
++insert into roles values (3, 'Resource Admin', 3) on duplicate key update `role_id` = 3, `name` = 'Resource Admin', `role_level` = 3;
+ 
+ insert into dbversion values('2.1', now());
+\ No newline at end of file
+diff -NaurBb database_schema/upgrades/2.1/schema.sql database_schema/upgrades/2.1/schema.sql
+--- database_schema/upgrades/2.1/schema.sql     2014-03-31 12:32:08.000000000 -0600
++++ database_schema/upgrades/2.1/schema.sql     2014-04-11 11:40:27.135184832 -0600
+@@ -4,18 +4,18 @@
+  `version_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+ ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8;
+ 
+-ALTER TABLE `resources` ADD COLUMN `admin_group_id` SMALLINT(5) unsigned;
+-ALTER TABLE `resources` ADD CONSTRAINT `admin_group_id` FOREIGN KEY (`admin_group_id`) REFERENCES groups(`group_id`) ON DELETE SET NULL;
++-- ALTER TABLE `resources` ADD COLUMN `admin_group_id` SMALLINT(5) unsigned;
++-- ALTER TABLE `resources` ADD CONSTRAINT `admin_group_id` FOREIGN KEY (`admin_group_id`) REFERENCES groups(`group_id`) ON DELETE SET NULL;
+ 
+-ALTER TABLE `users` ADD COLUMN `public_id` VARCHAR(20);
+-CREATE UNIQUE INDEX `public_id` ON `users` (`public_id`);
++-- ALTER TABLE `users` ADD COLUMN `public_id` VARCHAR(20);
++-- CREATE UNIQUE INDEX `public_id` ON `users` (`public_id`);
+ 
+-ALTER TABLE `resources` ADD COLUMN `public_id` VARCHAR(20);
+-CREATE UNIQUE INDEX `public_id` ON `resources` (`public_id`);
++-- ALTER TABLE `resources` ADD COLUMN `public_id` VARCHAR(20);
++-- CREATE UNIQUE INDEX `public_id` ON `resources` (`public_id`);
+ 
+-ALTER TABLE `schedules` ADD COLUMN `public_id` VARCHAR(20);
+-CREATE UNIQUE INDEX `public_id` ON `schedules` (`public_id`);
++-- ALTER TABLE `schedules` ADD COLUMN `public_id` VARCHAR(20);
++-- CREATE UNIQUE INDEX `public_id` ON `schedules` (`public_id`);
+ 
+-ALTER TABLE `users` ADD COLUMN `allow_calendar_subscription` TINYINT(1) NOT NULL DEFAULT 0;
+-ALTER TABLE `resources` ADD COLUMN `allow_calendar_subscription` TINYINT(1) NOT NULL DEFAULT 0;
+-ALTER TABLE `schedules` ADD COLUMN `allow_calendar_subscription` TINYINT(1) NOT NULL DEFAULT 0;
+\ No newline at end of file
++-- ALTER TABLE `users` ADD COLUMN `allow_calendar_subscription` TINYINT(1) NOT NULL DEFAULT 0;
++-- ALTER TABLE `resources` ADD COLUMN `allow_calendar_subscription` TINYINT(1) NOT NULL DEFAULT 0;
++-- ALTER TABLE `schedules` ADD COLUMN `allow_calendar_subscription` TINYINT(1) NOT NULL DEFAULT 0;
+diff -NaurBb database_schema/upgrades/2.3/data.sql database_schema/upgrades/2.3/data.sql
+--- database_schema/upgrades/2.3/data.sql       2014-03-31 12:32:08.000000000 -0600
++++ database_schema/upgrades/2.3/data.sql       2014-04-11 11:40:27.135184832 -0600
+@@ -1,3 +1,3 @@
+-insert into roles values (4, 'Schedule Admin', 4);
++insert into roles values (4, 'Schedule Admin', 4) on duplicate key update `role_id` = 4, `name` = 'Resource Admin', `role_level` = 4;
+ 
+ insert into dbversion values('2.3', now());
+\ No newline at end of file
+diff -NaurBb database_schema/upgrades/2.3/schema.sql database_schema/upgrades/2.3/schema.sql
+--- database_schema/upgrades/2.3/schema.sql     2014-03-31 12:32:08.000000000 -0600
++++ database_schema/upgrades/2.3/schema.sql     2014-04-11 11:40:27.135184832 -0600
+@@ -1,5 +1,5 @@
+-ALTER TABLE `schedules` ADD COLUMN `admin_group_id` SMALLINT(5) unsigned;
+-ALTER TABLE `schedules` ADD CONSTRAINT `schedules_groups_admin_group_id` FOREIGN KEY (`admin_group_id`) REFERENCES groups(`group_id`) ON DELETE SET NULL;
++-- ALTER TABLE `schedules` ADD COLUMN `admin_group_id` SMALLINT(5) unsigned;
++-- ALTER TABLE `schedules` ADD CONSTRAINT `schedules_groups_admin_group_id` FOREIGN KEY (`admin_group_id`) REFERENCES groups(`group_id`) ON DELETE SET NULL;
+ 
+ DROP TABLE IF EXISTS `saved_reports`;
+ CREATE TABLE `saved_reports` (
+@@ -14,4 +14,4 @@
+        ON DELETE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8;
+ 
+-ALTER TABLE `resources` ADD COLUMN `sort_order` TINYINT(2) unsigned;
+\ No newline at end of file
++-- ALTER TABLE `resources` ADD COLUMN `sort_order` TINYINT(2) unsigned;
+diff -NaurBb database_schema/upgrades/2.4/schema.sql database_schema/upgrades/2.4/schema.sql
+--- database_schema/upgrades/2.4/schema.sql     2014-03-31 12:32:08.000000000 -0600
++++ database_schema/upgrades/2.4/schema.sql     2014-04-11 11:40:27.135184832 -0600
+@@ -13,7 +13,7 @@
+        ON DELETE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8;
+ 
+-ALTER TABLE `time_blocks` ADD COLUMN `day_of_week` SMALLINT(5) unsigned;
++-- ALTER TABLE `time_blocks` ADD COLUMN `day_of_week` SMALLINT(5) unsigned;
+ 
+ DROP TABLE IF EXISTS `reminders`;
+ CREATE TABLE `reminders` (
+@@ -42,4 +42,4 @@
+        ON DELETE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8;
+ 
+-ALTER TABLE `users` ADD COLUMN `default_schedule_id` smallint(5) unsigned;
+\ No newline at end of file
++-- ALTER TABLE `users` ADD COLUMN `default_schedule_id` smallint(5) unsigned;
+diff -NaurBb database_schema/upgrades/2.5/schema.sql database_schema/upgrades/2.5/schema.sql
+--- database_schema/upgrades/2.5/schema.sql     2014-03-31 12:32:08.000000000 -0600
++++ database_schema/upgrades/2.5/schema.sql     2014-04-11 11:40:27.135184832 -0600
+@@ -1,6 +1,8 @@
+ ALTER TABLE `custom_attributes` ADD COLUMN `entity_id` mediumint(8) unsigned;
+ 
+-ALTER TABLE `resources` ADD COLUMN `resource_type_id` mediumint(8) unsigned;
++-- ALTER TABLE `resources` ADD COLUMN `resource_type_id` mediumint(8) unsigned;
++
++ALTER TABLE `blackout_series` ADD COLUMN `resource_id` mediumint(8) unsigned;
+ 
+ DROP TABLE IF EXISTS `resource_group_assignment`;
+ 
+@@ -16,6 +18,7 @@
+        ON DELETE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8;
+ 
++SET FOREIGN_KEY_CHECKS = 0;
+ DROP TABLE IF EXISTS `resource_types`;
+ CREATE TABLE `resource_types` (
+  `resource_type_id` mediumint(8) unsigned NOT NULL auto_increment,
+@@ -23,6 +26,7 @@
+  `resource_type_description` TEXT,
+   PRIMARY KEY (`resource_type_id`)
+ ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8;
++SET FOREIGN_KEY_CHECKS = 1;
+ 
+ ALTER TABLE `resources` ADD FOREIGN KEY (`resource_type_id`) REFERENCES resource_types(`resource_type_id`) ON DELETE SET NULL;
+ 
+@@ -62,8 +66,8 @@
+ INSERT INTO blackout_series_resources SELECT blackout_series_id, resource_id FROM blackout_series;
+ 
+ ALTER TABLE `blackout_series` DROP COLUMN `resource_id`;
+-ALTER TABLE `blackout_series` ADD COLUMN `repeat_type` varchar(10) default NULL;
+-ALTER TABLE `blackout_series` ADD COLUMN `repeat_options` varchar(255) default NULL;
++-- ALTER TABLE `blackout_series` ADD COLUMN `repeat_type` varchar(10) default NULL;
++-- ALTER TABLE `blackout_series` ADD COLUMN `repeat_options` varchar(255) default NULL;
+ 
+ DROP TABLE IF EXISTS `user_preferences`;
+ CREATE TABLE `user_preferences` (
+@@ -81,6 +85,7 @@
+ ALTER TABLE `accessories` MODIFY COLUMN accessory_quantity smallint(5) unsigned;
+ ALTER TABLE `reservation_accessories` MODIFY COLUMN quantity smallint(5) unsigned;
+ 
++SET FOREIGN_KEY_CHECKS = 0;
+ DROP TABLE IF EXISTS `resource_status_reasons`;
+ CREATE TABLE `resource_status_reasons` (
+  `resource_status_reason_id` smallint(5) unsigned NOT NULL auto_increment,
+@@ -89,10 +94,11 @@
+  PRIMARY KEY (`resource_status_reason_id`),
+  INDEX (`status_id`)
+ ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8;
++SET FOREIGN_KEY_CHECKS = 1;
+ 
+-ALTER TABLE `resources` ADD COLUMN `status_id` tinyint unsigned NOT NULL DEFAULT 1;
+-ALTER TABLE `resources` ADD COLUMN `resource_status_reason_id` smallint(5) unsigned;
++-- ALTER TABLE `resources` ADD COLUMN `status_id` tinyint unsigned NOT NULL DEFAULT 1;
++-- ALTER TABLE `resources` ADD COLUMN `resource_status_reason_id` smallint(5) unsigned;
+ ALTER TABLE `resources` ADD FOREIGN KEY (`resource_status_reason_id`) REFERENCES resource_status_reasons(`resource_status_reason_id`) ON DELETE SET NULL;
+-UPDATE resources SET status_id = isactive;
+-ALTER TABLE `resources` DROP COLUMN `isactive`;
+-ALTER TABLE `resources` ADD COLUMN `buffer_time` int unsigned;
+\ No newline at end of file
++-- UPDATE resources SET status_id = isactive;
++-- ALTER TABLE `resources` DROP COLUMN `isactive`;
++-- ALTER TABLE `resources` ADD COLUMN `buffer_time` int unsigned;
+diff -NaurBb Web/scripts/admin/resource.js Web/scripts/admin/resource.js
+--- Web/scripts/admin/resource.js       2014-03-31 12:32:20.000000000 -0600
++++ Web/scripts/admin/resource.js       2014-04-17 06:10:17.611695687 -0600
+@@ -258,7 +258,7 @@
+ 
+                var beforeSubmitWithIntervals = function(form, options){
+                        combineIntervals(form, options);
+-                       BeforeFormSubmit(form, options);
++                       BeforeFormSubmit(null, form, options);
+                };
+ 
+                ConfigureAdminForm(elements.imageForm, defaultSubmitCallback(elements.imageForm), null, imageSaveErrorHandler);
+
